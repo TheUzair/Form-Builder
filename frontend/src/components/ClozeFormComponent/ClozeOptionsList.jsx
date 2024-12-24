@@ -26,7 +26,7 @@ const OptionsList = ({ options, setOptions, sentence, setSentence }) => {
         spanToRemove.outerHTML = spanToRemove.innerHTML;
       }
     }
-    setSentence(tempDiv.innerHTML); // Add this line
+    setSentence(tempDiv.innerHTML);
   };
   
   return (

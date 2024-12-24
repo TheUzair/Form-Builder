@@ -20,3 +20,39 @@ export const createComprehension = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+export const bulkSaveComprehensions = async (req, res) => {
+  try {
+    const { questions } = req.body;
+    
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ 
+        error: "Invalid request format. Expected an array of questions." 
+      });
+    }
+
+    console.log("Received payload:", questions);
+
+    // Validate each question
+    questions.forEach((question, index) => {
+      if (!question.questionNumber || !question.type || !question.points) {
+        throw new Error(`Invalid question data at index ${index}`);
+      }
+    });
+
+    // Insert all questions
+    const savedQuestions = await Comprehension.insertMany(questions);
+    
+    res.status(200).json({ 
+      message: "Questions saved successfully",
+      count: savedQuestions.length,
+      questions: savedQuestions
+    });
+  } catch (error) {
+    console.error("Error saving questions:", error);
+    res.status(500).json({ 
+      error: `Failed to save questions: ${error.message}`,
+      details: error.errors || undefined
+    });
+  }
+};

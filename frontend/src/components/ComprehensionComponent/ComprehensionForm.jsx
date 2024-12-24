@@ -1,207 +1,297 @@
-// ComprehensionForm.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
-import { MoreVertical, HelpCircle, Image, Calculator, Check } from "lucide-react";
-import Sidebar from "../Sidebar";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { addComprehensionQuestion } from "@/services/endpoints";
+import HeaderSection from "./HeaderSection";
+import PassageSection from "./PassageSection";
+import PointsSection from "./PointsSection";
+import SubQuestionCard from "./SubQuestionCard";
 
-const ComprehensionForm = () => {
-	const [questions, setQuestions] = useState([
-		{
-			id: 1,
-			title: "",
-			type: "mcq", // Set default type to mcq
-			points: "",
-			negativePoints: "",
-			selectedOption: "", // Add selectedOption for radio selection
-			options: [
-				{ id: 1, text: "First sample option" },
-				{ id: 2, text: "Second sample option" },
-				{ id: 3, text: "Third sample option" },
-				{ id: 4, text: "Fourth sample option" },
-			],
-		},
-	]);
+const ComprehensionForm = ({
+  formId,
+  questionNumber,
+  points,
+  negativePoints,
+  description,
+  passage,
+  subQuestions,
+  onAdd,
+  onDelete,
+  onFormChange,
+}) => {
+  const { toast } = useToast();
+  const [localPassage, setLocalPassage] = useState(passage || "");
+  const [localSubQuestions, setLocalSubQuestions] = useState(
+    subQuestions || [
+      {
+        id: 1,
+        title: "",
+        type: "mcq",
+        points: "",
+        negativePoints: "",
+        options: [
+          { id: 1, text: "", isCorrect: false },
+          { id: 2, text: "", isCorrect: false },
+          { id: 3, text: "", isCorrect: false },
+          { id: 4, text: "", isCorrect: false },
+        ],
+      },
+    ]
+  );
 
-	const handleOptionSelect = (questionId, value) => {
-		setQuestions(questions.map(question =>
-			question.id === questionId
-				? { ...question, selectedOption: value }
-				: question
-		));
-	};
+  useEffect(() => {
+    updateParent();
+  }, [localPassage, localSubQuestions]);
 
-	return (
-		<DndProvider backend={HTML5Backend}>
-			<div className="grid grid-cols-12 gap-6">
-				<div className="col-span-11">
-					<Card className="p-6 shadow-lg rounded-lg bg-white">
-						{/* Header Section */}
-						<div className="flex items-center justify-between mb-6">
-							<div className="flex items-center gap-4">
-								<div className="flex flex-wrap w-6 h-6">
-									<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-									<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-									<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-									<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-								</div>
-								<h2 className="text-lg font-semibold">Question 3</h2>
-							</div>
-							<Button variant="ghost" size="sm" className="h-8 w-8">
-								<MoreVertical className="h-5 w-5" />
-							</Button>
-						</div>
+  const handleSave = async () => {
+    try {
+      // Debug current state
+      console.log('Current state before save:', {
+        passage: localPassage,
+        subQuestions: localSubQuestions,
+        points,
+        negativePoints,
+        description
+      });
+  
+      // Validate required fields
+      if (!localPassage.trim()) {
+        toast({
+          title: "Error",
+          description: "Please enter a passage",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      if (!localSubQuestions.length) {
+        toast({
+          title: "Error",
+          description: "Please add at least one sub-question",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      // Validate sub-questions
+      const invalidSubQuestions = localSubQuestions.filter(sq => {
+        // Check if title is empty
+        if (!sq.title.trim()) return true;
+  
+        // Check if at least one option is marked as correct
+        if (!sq.options.some(opt => opt.isCorrect)) return true;
+  
+        // Check if all options have text
+        if (sq.options.some(opt => !opt.text.trim())) return true;
+  
+        return false;
+      });
+  
+      if (invalidSubQuestions.length > 0) {
+        toast({
+          title: "Error",
+          description: "Please complete all sub-questions with options and correct answers",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      // Format the question data
+      const questionData = {
+        questionNumber: Number(questionNumber),
+        type: 'comprehension',
+        points: Number(points) || 0,
+        negativePoints: Number(negativePoints) || 0,
+        description: description || '',
+        passage: localPassage,
+        subQuestions: localSubQuestions.map(sq => ({
+          id: sq.id,
+          title: sq.title,
+          type: sq.type,
+          points: Number(sq.points) || 0,
+          negativePoints: Number(sq.negativePoints) || 0,
+          options: sq.options.map(opt => ({
+            id: opt.id,
+            text: opt.text,
+            isCorrect: opt.isCorrect
+          }))
+        }))
+      };
+  
+      // Debug the payload
+      console.log('Sending question data:', questionData);
+  
+      // Send to API
+      const response = await addComprehensionQuestion(questionData);
+      console.log('API Response:', response);
+  
+      toast({
+        title: "Success",
+        description: "Question saved successfully",
+        variant: "success",
+      });
+  
+      // Optionally clear form or update state
+      if (typeof onAdd === 'function') onAdd();
+  
+    } catch (error) {
+      console.error('Save Error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save question",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const updateParent = () => {
+    if (typeof onFormChange === "function") {
+      onFormChange({
+        passage: localPassage,
+        subQuestions: localSubQuestions,
+        points,
+        negativePoints,
+        description,
+      });
+    }
+  };
 
-						{/* Points and Question Type Section */}
-						<div className="mb-6 flex justify-end gap-4">
-							<div className="flex items-center gap-2">
-								<Select>
-									<SelectTrigger className="w-[180px]">
-										<SelectValue placeholder="Select Question Type" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="comprehension">Comprehension</SelectItem>
-									</SelectContent>
-								</Select>
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger>
-											<HelpCircle className="h-5 w-5 text-blue-400" />
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>Add comprehension questions with multiple sub-questions</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</div>
-							<Input type="number" placeholder="Points" className="w-24" />
-						</div>
+  const handlePointsChange = (value) => {
+    if (typeof onFormChange === "function") {
+      onFormChange({
+        passage: localPassage,
+        subQuestions: localSubQuestions,
+        points: parseInt(value) || 0,
+        negativePoints,
+        description,
+      });
+    }
+  };
 
-						{/* Description Section */}
-						<div className="mb-6">
-							<Textarea
-								placeholder="Enter comprehension passage here..."
-								className="min-h-[200px] w-3/5"
-							/>
-						</div>
+  const handleNegativePointsChange = (value) => {
+    if (typeof onFormChange === "function") {
+      onFormChange({
+        passage: localPassage,
+        subQuestions: localSubQuestions,
+        points,
+        negativePoints: parseInt(value) || 0,
+        description,
+      });
+    }
+  };
 
-						{/* Sub Questions Section */}
-						{questions.map((question, index) => (
-							<Card key={question.id} className="mb-4 p-4">
-								<div className="flex items-center justify-between mb-4">
-									<div className="flex items-center gap-4">
-										<div className="flex flex-wrap w-6 h-6">
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-										</div>
-										<h3 className="text-md font-semibold">Question 3.{index + 1}</h3>
-									</div>
-									<div className="flex items-center gap-2">
-										<Button variant="ghost" size="sm" className="h-8 w-8">
-											<Image className="h-5 w-5" />
-										</Button>
-										<Button variant="ghost" size="sm" className="h-8 w-8">
-											<MoreVertical className="h-5 w-5" />
-										</Button>
-									</div>
-								</div>
+  const handlePassageChange = (value) => {
+    setLocalPassage(value);
+  };
 
-								<div className="space-y-4">
-									<Input placeholder="Question Title (Optional)" className="w-3/5" />
+  const handleSubQuestionChange = (questionId, updates) => {
+    setLocalSubQuestions((prevQuestions) =>
+      prevQuestions.map((question) =>
+        question.id === questionId ? { ...question, ...updates } : question
+      )
+    );
+  };
 
-									<div className="flex justify-between items-center gap-4">
-										<div className="relative w-[60%]">
-											<Select>
-												<SelectTrigger>
-													<SelectValue placeholder="Question Type" />
-												</SelectTrigger>
-												<SelectContent
-													position="popper"
-													className={cn(
-														"relative z-[9999] w-[var(--radix-select-trigger-width)]",
-														"before:content-[''] before:fixed before:inset-0",
-														"before:bg-black/20 before:backdrop-blur-sm before:-z-10"
-													)}
-													sideOffset={5}
-												>
-													<div className="bg-white rounded-md shadow-lg border">
-														<SelectItem value="mcq" className="hover:bg-gray-100 cursor-pointer">
-															MCQ (Single Correct)
-														</SelectItem>
-													</div>
-												</SelectContent>
-											</Select>
-										</div>
+  const handleOptionChange = (questionId, optionId, updates) => {
+    setLocalSubQuestions((prevQuestions) =>
+      prevQuestions.map((question) =>
+        question.id === questionId
+          ? {
+              ...question,
+              options: question.options.map((option) => {
+                if (option.id === optionId) {
+                  // If this is a radio selection, unselect other options
+                  if ('isCorrect' in updates) {
+                    return { ...option, isCorrect: updates.isCorrect };
+                  }
+                  // For text updates
+                  return { ...option, ...updates };
+                }
+                // If this is a radio selection, ensure other options are unselected
+                if ('isCorrect' in updates) {
+                  return { ...option, isCorrect: false };
+                }
+                return option;
+              }),
+            }
+          : question
+      )
+    );
+  };
 
-										<div className="flex gap-2 w-[25%]">
-											<div className="relative flex-1">
-												<Input type="number" placeholder="Points" className="pr-8" />
-												<Calculator className="h-4 w-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-											</div>
-											<div className="relative flex-1">
-												<Input type="number" placeholder="Negative" className="pr-8" />
-												<Calculator className="h-4 w-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-											</div>
-										</div>
-									</div>
+  const addSubQuestion = () => {
+    const newId = Math.max(...localSubQuestions.map((q) => q.id)) + 1;
+    setLocalSubQuestions([
+      ...localSubQuestions,
+      {
+        id: newId,
+        title: "",
+        type: "mcq",
+        points: "",
+        negativePoints: "",
+        options: [
+          { id: 1, text: "", isCorrect: false },
+          { id: 2, text: "", isCorrect: false },
+          { id: 3, text: "", isCorrect: false },
+          { id: 4, text: "", isCorrect: false },
+        ],
+      },
+    ]);
+  };
 
-									{/* Options */}
-									<div className="flex items-start gap-4">
-										<div className="flex flex-wrap w-6 h-6 mt-2">
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-											<div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
-										</div>
+  const deleteSubQuestion = (questionId) => {
+    if (localSubQuestions.length > 1) {
+      setLocalSubQuestions((prevQuestions) =>
+        prevQuestions.filter((question) => question.id !== questionId)
+      );
+    }
+  };
 
-										<div className="space-y-3 flex-1">
-											<RadioGroup
-												value={question.selectedOption}
-												onValueChange={(value) => handleOptionSelect(question.id, value)}
-											>
-												<div className="space-y-3">
-													{question.options.map((option) => (
-														<div key={option.id} className="flex items-center space-x-3">
-															<RadioGroupItem value={option.id.toString()} id={`option${option.id}`} />
-															<label
-																htmlFor={`option${option.id}`}
-																className="text-sm cursor-pointer"
-															>
-																{option.text}
-															</label>
-														</div>
-													))}
-												</div>
-											</RadioGroup>
-										</div>
-									</div>
-								</div>
-							</Card>
-						))}
-					</Card>
-				</div>
-				<div className="col-span-1">
-					<Sidebar />
-				</div>
-			</div>
-		</DndProvider>
-	);
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-11">
+          <Card className="p-6 shadow-lg rounded-lg bg-white">
+            <HeaderSection
+              questionNumber={questionNumber}
+              onAdd={onAdd}
+              onDelete={onDelete}
+              onSave={handleSave}
+            />
+            <PointsSection
+              points={points}
+              negativePoints={negativePoints}
+              onPointsChange={handlePointsChange}
+              onNegativePointsChange={handleNegativePointsChange}
+            />
+            <PassageSection
+              passage={localPassage}
+              onChange={handlePassageChange}
+            />
+            {localSubQuestions.map((question, index) => (
+              <SubQuestionCard
+                key={question.id}
+                question={question}
+                questionNumber={questionNumber}
+                index={index}
+                onDelete={deleteSubQuestion}
+                onSubQuestionChange={handleSubQuestionChange}
+                onOptionChange={handleOptionChange}
+              />
+            ))}
+            <Button variant="ghost" onClick={addSubQuestion} className="mt-2">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Sub-Question
+            </Button>
+          </Card>
+        </div>
+      </div>
+    </DndProvider>
+  );
 };
 
 export default ComprehensionForm;

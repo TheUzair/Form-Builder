@@ -1,10 +1,12 @@
 import { useState } from "react";
 import ClozeForm from "./ClozeForm";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 import { saveClozeQuestionsBulk } from "@/services/endpoints";
 
 const ClozeFormsContainer = () => {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const [forms, setForms] = useState([
     {
       id: 1,
@@ -16,6 +18,112 @@ const ClozeFormsContainer = () => {
       description: "",
     },
   ]);
+
+  const handleFormChange = (formId, updatedFormData) => {
+    console.log('Receiving form change:', {
+      formId,
+      updatedFormData
+    });
+
+    setForms(prevForms => {
+      const newForms = prevForms.map(form => {
+        if (form.id === formId) {
+          const updatedForm = {
+            ...form,
+            ...updatedFormData
+          };
+          console.log('Updated form:', updatedForm);
+          return updatedForm;
+        }
+        return form;
+      });
+      console.log('New forms state:', newForms);
+      return newForms;
+    });
+  };
+
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    try {
+      // Debug current state
+      console.log('Forms before save:', forms);
+
+      // Validate forms
+      const emptyForms = forms.filter(form => {
+        const isEmpty = !form.sentence || !form.sentence.trim();
+        console.log(`Checking form ${form.questionNumber}:`, {
+          sentence: form.sentence,
+          isEmpty
+        });
+        return isEmpty;
+      });
+
+      if (emptyForms.length > 0) {
+        console.log('Empty forms found:', emptyForms);
+        alert("Please enter sentences for all questions");
+        return;
+      }
+
+      const questionsPayload = forms.map(form => {
+        // Create a temporary div to extract raw text from HTML content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = form.sentence;
+        const rawSentence = tempDiv.textContent || tempDiv.innerText;
+
+        return {
+          questionNumber: Number(form.questionNumber),
+          type: 'cloze',
+          points: Number(form.points) || 0,
+          negativePoints: Number(form.negativePoints) || 0,
+          description: String(form.description || "Fill in the blanks:"),
+          sentence: form.sentence.trim(), // Keep the original HTML sentence
+          rawSentence: rawSentence.trim(), // Add the raw sentence without HTML tags
+          blanks: form.options.map(opt => ({
+            word: String(opt.word),
+            index: rawSentence.indexOf(opt.word)
+          })),
+          underlinedWords: form.options.map(opt => String(opt.word)),
+          options: form.options.map(opt => String(opt.word))
+        };
+      });
+
+      console.log('Sending payload:', questionsPayload);
+
+      const response = await saveClozeQuestionsBulk(questionsPayload);
+      console.log('Save response:', response);
+
+      // Reset forms
+      setForms([
+        {
+          id: 1,
+          questionNumber: 1,
+          sentence: "",
+          options: [],
+          points: 0,
+          negativePoints: 0,
+          description: "",
+        },
+      ]);
+
+      toast({
+        title: "Success",
+        description: "All questions saved successfully",
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Error saving questions:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save questions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+
+
+  };
+
 
   const handleAdd = () => {
     const newQuestionNumber = forms.length + 1;
@@ -49,39 +157,6 @@ const ClozeFormsContainer = () => {
     }
   };
 
-  const handleSaveAll = async () => {
-		try {
-			const allClozeData = forms.map((form) => ({
-				questionNumber: form.questionNumber,
-				type: "cloze",
-				points: form.points || 10,
-				negativePoints: form.negativePoints || -1,
-				description: form.description || "Fill in the blanks:",
-				sentence: form.sentence || "The quick brown fox jumps over the lazy dog",
-				underlinedWords: form.options.map((opt) => opt.word),
-				options: form.options.map((opt) => opt.word),
-			}));
-			console.log("Payload to send:", allClozeData);
-			await saveClozeQuestionsBulk(allClozeData);
-			alert("All questions saved successfully!");
-		} catch (error) {
-			console.error("Error saving questions:", error);
-
-			console.error("Error saving all questions:", error);
-			alert("Error saving questions");
-		}
-	};
-	
-	
-
-  const handleFormChange = (formId, updatedFormData) => {
-    setForms((prevForms) =>
-      prevForms.map((form) =>
-        form.id === formId ? { ...form, ...updatedFormData } : form
-      )
-    );
-  };
-
   return (
     <div className="space-y-6">
       {forms.map((form) => (
@@ -89,6 +164,11 @@ const ClozeFormsContainer = () => {
           key={form.id}
           formId={form.id}
           questionNumber={form.questionNumber}
+          sentence={form.sentence}
+          options={form.options}
+          points={form.points}
+          negativePoints={form.negativePoints}
+          description={form.description}
           onAdd={handleAdd}
           onDelete={() => handleDelete(form.id)}
           onFormChange={(updatedData) => handleFormChange(form.id, updatedData)}

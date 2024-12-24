@@ -4,6 +4,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import Homepage from "./components/Homepage";
 import Test from "./components/Test";
 import './index.css'
+import { Toaster } from "@/components/ui/toaster"
 
 
 const App = () => (
@@ -16,6 +17,7 @@ const App = () => (
         <Route path="/test" element={<Test />} />
       </Routes>
     </div>
+    <Toaster />
   </DndProvider>
   </Router>
 );
