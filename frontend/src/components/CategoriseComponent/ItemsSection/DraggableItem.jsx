@@ -4,6 +4,7 @@ import { DragHandle } from "./DragHandle";
 import { ItemInput } from "./ItemInput";
 import { DeleteButton } from "./DeleteButton";
 import { CategorySelect } from "./CategorySelect";
+import { cn } from "@/lib/utils";
 
 export const DraggableItem = ({
   item,
@@ -40,9 +41,12 @@ export const DraggableItem = ({
   return (
     <div
       ref={ref}
-      className={`grid grid-cols-2 gap-4 mb-3 ${isDragging ? "opacity-50" : ""}`}
+      className={cn(
+        "flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-2 mb-3",
+        isDragging && "opacity-50"
+      )}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <DragHandle />
         <div className="flex-1 flex items-center gap-2">
           <ItemInput
@@ -53,7 +57,7 @@ export const DraggableItem = ({
           <DeleteButton onDelete={() => deleteItem(item.id)} />
         </div>
       </div>
-      <div className="relative">
+      <div className="w-full sm:w-auto">
         <CategorySelect
           item={item}
           categories={categories}

@@ -5,7 +5,6 @@ const DroppableArea = ({ onDrop, children, type }) => {
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: type,
     drop: (item, monitor) => {
-      // Only process the drop if it's actually changing position
       if (monitor.didDrop()) {
         return;
       }

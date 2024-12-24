@@ -69,7 +69,6 @@ const Option = ({ index, option, moveOption, removeOption }) => {
       className={`p-3 border ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex items-center gap-4">
-        {/* Four circles making a square */}
         <div className="flex flex-wrap w-6 h-6 cursor-move">
           <div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
           <div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
@@ -77,7 +76,6 @@ const Option = ({ index, option, moveOption, removeOption }) => {
           <div className="w-2 h-2 rounded-full bg-gray-400 m-0.5"></div>
         </div>
 
-        {/* Checkbox */}
         <Checkbox
           id={`option-${index}`}
           checked={true}
@@ -88,7 +86,6 @@ const Option = ({ index, option, moveOption, removeOption }) => {
           }}
         />
 
-        {/* Option Label */}
         <Label htmlFor={`option-${index}`} className="text-sm font-medium">
           {option.word}
         </Label>

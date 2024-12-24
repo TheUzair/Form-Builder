@@ -149,7 +149,6 @@ const CategoriesFormContainer = () => {
       }));
       
       console.log("Payload to send:", allCategorizeData);
-      // The key change is here - send the array directly without wrapping it
       const response = await saveCategorizeQuestionsBulk(allCategorizeData);
       console.log("Response:", response);
   

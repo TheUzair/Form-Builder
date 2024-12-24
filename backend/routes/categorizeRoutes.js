@@ -3,7 +3,6 @@ import { getCategorizes, createCategorize, bulkSaveCategorizes } from '../contro
 
 const router = express.Router();
 
-// Routes for Categorize
 router.get('/', getCategorizes);
 router.post('/', createCategorize);
 router.post('/bulk-save', bulkSaveCategorizes);

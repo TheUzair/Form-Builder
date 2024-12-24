@@ -3,7 +3,6 @@ import { getClozes, createCloze, bulkSaveClozes } from '../controllers/clozeCont
 
 const router = express.Router();
 
-// Routes for Cloze
 router.get('/', getClozes);
 router.post('/', createCloze);
 router.post('/bulk-save', bulkSaveClozes);

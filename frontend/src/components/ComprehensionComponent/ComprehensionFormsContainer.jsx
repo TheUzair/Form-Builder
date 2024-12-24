@@ -98,7 +98,7 @@ const ComprehensionFormsContainer = () => {
 
 
 	const handleDelete = (formId) => {
-	
+
 		if (forms.length <= 1) {
 			toast({
 				title: "Action Not Allowed",
@@ -107,7 +107,7 @@ const ComprehensionFormsContainer = () => {
 			});
 			return;
 		}
-	
+
 		toast({
 			title: "Confirm Deletion",
 			description: "Are you sure you want to delete this question?",
@@ -153,7 +153,6 @@ const ComprehensionFormsContainer = () => {
 				}))
 			}));
 
-			// Validation
 			const isValid = allComprehensionData.every(form => {
 				if (!form.passage.trim()) return false;
 				return form.subQuestions.every(q =>
@@ -186,25 +185,30 @@ const ComprehensionFormsContainer = () => {
 	};
 
 	return (
-		<div className="space-y-6">
-			{forms.map((form) => (
-				<ComprehensionForm
-					key={form.id}
-					formId={form.id}
-					questionNumber={form.questionNumber}
-					points={form.points}
-					negativePoints={form.negativePoints}
-					description={form.description}
-					passage={form.passage}
-					subQuestions={form.subQuestions}
-					onAdd={handleAdd}
-					onDelete={() => handleDelete(form.id)}
-					onFormChange={(updatedData) => handleFormChange(form.id, updatedData)}
-				/>
-			))}
+		<div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-6">
+			<div className="space-y-4 sm:space-y-6">
+				{forms.map((form) => (
+					<ComprehensionForm
+						key={form.id}
+						formId={form.id}
+						questionNumber={form.questionNumber}
+						points={form.points}
+						negativePoints={form.negativePoints}
+						description={form.description}
+						passage={form.passage}
+						subQuestions={form.subQuestions}
+						onAdd={handleAdd}
+						onDelete={() => handleDelete(form.id)}
+						onFormChange={(updatedData) => handleFormChange(form.id, updatedData)}
+					/>
+				))}
+			</div>
 
-			<div className="flex justify-center">
-				<Button onClick={handleSaveAll} className="mt-4">
+			<div className="flex justify-center px-4 sm:px-0">
+				<Button
+					onClick={handleSaveAll}
+					className="w-full sm:w-auto mt-2 sm:mt-4"
+				>
 					Save All Questions
 				</Button>
 			</div>

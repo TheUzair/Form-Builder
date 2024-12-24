@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 const PointsInput = ({ points, negativePoints, setPoints, setNegativePoints }) => (
   <div className="mb-6 flex gap-4 mt-6">
     <div className="flex items-center gap-6">
-      {/* Points Input */}
       <div className="flex flex-col items-center">
         <label className="text-sm font-medium text-gray-700 mb-1">Points</label>
         <div className="relative flex items-center border border-gray-300 rounded-md w-28">
@@ -24,7 +23,6 @@ const PointsInput = ({ points, negativePoints, setPoints, setNegativePoints }) =
         </div>
       </div>
 
-      {/* Negative Points Input */}
       <div className="flex flex-col items-center">
         <label className="text-sm font-medium text-gray-700 mb-1">Negative Points</label>
         <div className="relative flex items-center border border-gray-300 rounded-md w-28">

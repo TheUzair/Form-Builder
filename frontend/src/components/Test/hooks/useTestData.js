@@ -52,7 +52,6 @@ const useTestData = () => {
   }, []);
 
 	const handleDrop = (item, categoryId, questionId) => {
-		// Validate the drop
 		if (!item || !categoryId || !questionId) return;
 	
 		setCompletedQuestions(prev => ({

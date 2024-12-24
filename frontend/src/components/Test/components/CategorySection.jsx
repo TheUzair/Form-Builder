@@ -5,20 +5,16 @@ import DroppableArea from './DroppableArea';
 import { ItemTypes } from '../constants/ItemTypes';
 
 const CategorySection = ({ data, onDrop }) => {
-  // Track items with their current category
   const [itemCategories, setItemCategories] = useState({});
 
   const handleDrop = (item, targetCategoryId, questionId) => {
     setItemCategories(prev => {
-      // Remove item from its previous category if it exists
       const newCategories = { ...prev };
       
-      // If the item is already in the target category, do nothing
       if (newCategories[item.id] === targetCategoryId) {
         return prev;
       }
 
-      // Update the item's category
       newCategories[item.id] = targetCategoryId;
       
       return newCategories;
@@ -39,7 +35,6 @@ const CategorySection = ({ data, onDrop }) => {
           <QuestionHeader number={question.displayNumber} showReset />
           <p className="mb-4 text-gray-700">{question.description}</p>
           
-          {/* Uncategorized items pool */}
           <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded">
             {question.items
               ?.filter(item => !itemCategories[item.id])
@@ -49,7 +44,7 @@ const CategorySection = ({ data, onDrop }) => {
                   id={item.id}
                   index={index}
                   type={ItemTypes.CATEGORY_ITEM}
-                  item={item} // Pass the complete item
+                  item={item}
                 >
                   {item.name}
                 </DraggableItem>

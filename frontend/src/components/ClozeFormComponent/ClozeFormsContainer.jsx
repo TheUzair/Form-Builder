@@ -45,10 +45,9 @@ const ClozeFormsContainer = () => {
   const handleSaveAll = async () => {
     setIsSaving(true);
     try {
-      // Debug current state
+      // current state
       console.log('Forms before save:', forms);
 
-      // Validate forms
       const emptyForms = forms.filter(form => {
         const isEmpty = !form.sentence || !form.sentence.trim();
         console.log(`Checking form ${form.questionNumber}:`, {
@@ -76,8 +75,8 @@ const ClozeFormsContainer = () => {
           points: Number(form.points) || 0,
           negativePoints: Number(form.negativePoints) || 0,
           description: String(form.description || "Fill in the blanks:"),
-          sentence: form.sentence.trim(), // Keep the original HTML sentence
-          rawSentence: rawSentence.trim(), // Add the raw sentence without HTML tags
+          sentence: form.sentence.trim(), 
+          rawSentence: rawSentence.trim(),
           blanks: form.options.map(opt => ({
             word: String(opt.word),
             index: rawSentence.indexOf(opt.word)
@@ -120,10 +119,7 @@ const ClozeFormsContainer = () => {
     } finally {
       setIsSaving(false);
     }
-
-
   };
-
 
   const handleAdd = () => {
     const newQuestionNumber = forms.length + 1;
@@ -175,7 +171,6 @@ const ClozeFormsContainer = () => {
         />
       ))}
 
-      {/* Save All Button */}
       <div className="flex justify-center">
         <Button onClick={handleSaveAll} className="mt-4">
           Save All Questions

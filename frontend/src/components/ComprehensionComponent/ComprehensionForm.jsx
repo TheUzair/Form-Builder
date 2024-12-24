@@ -57,8 +57,7 @@ const ComprehensionForm = ({
         negativePoints,
         description
       });
-  
-      // Validate required fields
+
       if (!localPassage.trim()) {
         toast({
           title: "Error",
@@ -67,7 +66,7 @@ const ComprehensionForm = ({
         });
         return;
       }
-  
+
       if (!localSubQuestions.length) {
         toast({
           title: "Error",
@@ -76,21 +75,17 @@ const ComprehensionForm = ({
         });
         return;
       }
-  
-      // Validate sub-questions
+
       const invalidSubQuestions = localSubQuestions.filter(sq => {
-        // Check if title is empty
         if (!sq.title.trim()) return true;
-  
-        // Check if at least one option is marked as correct
+
         if (!sq.options.some(opt => opt.isCorrect)) return true;
-  
-        // Check if all options have text
+
         if (sq.options.some(opt => !opt.text.trim())) return true;
-  
+
         return false;
       });
-  
+
       if (invalidSubQuestions.length > 0) {
         toast({
           title: "Error",
@@ -99,8 +94,7 @@ const ComprehensionForm = ({
         });
         return;
       }
-  
-      // Format the question data
+
       const questionData = {
         questionNumber: Number(questionNumber),
         type: 'comprehension',
@@ -121,23 +115,22 @@ const ComprehensionForm = ({
           }))
         }))
       };
-  
+
       // Debug the payload
       console.log('Sending question data:', questionData);
-  
+
       // Send to API
       const response = await addComprehensionQuestion(questionData);
       console.log('API Response:', response);
-  
+
       toast({
         title: "Success",
         description: "Question saved successfully",
         variant: "success",
       });
-  
-      // Optionally clear form or update state
+
       if (typeof onAdd === 'function') onAdd();
-  
+
     } catch (error) {
       console.error('Save Error:', error);
       toast({
@@ -147,7 +140,7 @@ const ComprehensionForm = ({
       });
     }
   };
-  
+
   const updateParent = () => {
     if (typeof onFormChange === "function") {
       onFormChange({
@@ -201,23 +194,20 @@ const ComprehensionForm = ({
       prevQuestions.map((question) =>
         question.id === questionId
           ? {
-              ...question,
-              options: question.options.map((option) => {
-                if (option.id === optionId) {
-                  // If this is a radio selection, unselect other options
-                  if ('isCorrect' in updates) {
-                    return { ...option, isCorrect: updates.isCorrect };
-                  }
-                  // For text updates
-                  return { ...option, ...updates };
-                }
-                // If this is a radio selection, ensure other options are unselected
+            ...question,
+            options: question.options.map((option) => {
+              if (option.id === optionId) {
                 if ('isCorrect' in updates) {
-                  return { ...option, isCorrect: false };
+                  return { ...option, isCorrect: updates.isCorrect };
                 }
-                return option;
-              }),
-            }
+                return { ...option, ...updates };
+              }
+              if ('isCorrect' in updates) {
+                return { ...option, isCorrect: false };
+              }
+              return option;
+            }),
+          }
           : question
       )
     );
@@ -253,40 +243,48 @@ const ComprehensionForm = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-11">
-          <Card className="p-6 shadow-lg rounded-lg bg-white">
+      <div className="grid grid-cols-12 gap-2 sm:gap-4 md:gap-6 px-2 sm:px-4 md:px-6">
+        <div className="col-span-12 lg:col-span-12 max-w-[1200px] mx-auto w-full">
+          <Card className="p-3 sm:p-4 md:p-6 shadow-lg rounded-lg bg-white w-full">
             <HeaderSection
               questionNumber={questionNumber}
               onAdd={onAdd}
               onDelete={onDelete}
               onSave={handleSave}
             />
-            <PointsSection
-              points={points}
-              negativePoints={negativePoints}
-              onPointsChange={handlePointsChange}
-              onNegativePointsChange={handleNegativePointsChange}
-            />
-            <PassageSection
-              passage={localPassage}
-              onChange={handlePassageChange}
-            />
-            {localSubQuestions.map((question, index) => (
-              <SubQuestionCard
-                key={question.id}
-                question={question}
-                questionNumber={questionNumber}
-                index={index}
-                onDelete={deleteSubQuestion}
-                onSubQuestionChange={handleSubQuestionChange}
-                onOptionChange={handleOptionChange}
+            <div className="space-y-4">
+              <PointsSection
+                points={points}
+                negativePoints={negativePoints}
+                onPointsChange={handlePointsChange}
+                onNegativePointsChange={handleNegativePointsChange}
               />
-            ))}
-            <Button variant="ghost" onClick={addSubQuestion} className="mt-2">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Sub-Question
-            </Button>
+              <PassageSection
+                passage={localPassage}
+                onChange={handlePassageChange}
+              />
+              <div className="space-y-3">
+                {localSubQuestions.map((question, index) => (
+                  <SubQuestionCard
+                    key={question.id}
+                    question={question}
+                    questionNumber={questionNumber}
+                    index={index}
+                    onDelete={deleteSubQuestion}
+                    onSubQuestionChange={handleSubQuestionChange}
+                    onOptionChange={handleOptionChange}
+                  />
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                onClick={addSubQuestion}
+                className="mt-2 w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sub-Question
+              </Button>
+            </div>
           </Card>
         </div>
       </div>

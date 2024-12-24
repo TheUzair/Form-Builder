@@ -1,4 +1,3 @@
-// components/ItemsSection/CategorySelect.jsx
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -13,7 +12,7 @@ export const CategorySelect = ({ item, categories, handleItemChange }) => (
     value={item.category}
     onValueChange={(value) => handleItemChange(item.id, { category: value })}
   >
-    <SelectTrigger className="w-1/2">
+    <SelectTrigger className="w-full sm:w-1/2 mt-2 sm:mt-0"> 
       <SelectValue placeholder="Choose Category" />
     </SelectTrigger>
     <SelectContent
@@ -25,21 +24,21 @@ export const CategorySelect = ({ item, categories, handleItemChange }) => (
       )}
       sideOffset={5}
     >
-      <div className="bg-white rounded-md shadow-lg border">
+      <div className="bg-white rounded-md shadow-lg border max-h-[200px] overflow-y-auto"> 
         {categories.length > 0 ? (
           categories.map((category) => (
             category.name && (
               <SelectItem
                 key={category.id}
                 value={category.name || `category-${category.id}`}
-                className="hover:bg-gray-100 cursor-pointer"
+                className="hover:bg-gray-100 cursor-pointer p-3 sm:p-2"
               >
                 {category.name || `Category ${category.id}`}
               </SelectItem>
             )
           ))
         ) : (
-          <div className="p-2 text-gray-500">No categories available</div>
+          <div className="p-3 sm:p-2 text-gray-500">No categories available</div>
         )}
       </div>
     </SelectContent>

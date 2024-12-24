@@ -30,7 +30,6 @@ const ClozeForm = ({ formId, questionNumber, onAdd, onDelete, onFormChange }) =>
     tempDiv.innerHTML = sentence;
     let previewText = tempDiv.textContent || tempDiv.innerText;
 
-    // Sort options by index in descending order to avoid position shifts
     const sortedOptions = [...options].sort((a, b) => b.index - a.index);
 
     // Replace words with dots
@@ -59,24 +58,20 @@ const ClozeForm = ({ formId, questionNumber, onAdd, onDelete, onFormChange }) =>
     setShowToolbar(e.target.value.length > 0);
   };
 
-  // Handle underline functionality
   const handleUnderline = () => {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
     if (selectedText && !options.some((opt) => opt.word === selectedText)) {
       const startIndex = sentence.indexOf(selectedText);
       if (startIndex !== -1) {
-        // Add selected word and its start index to options
         setOptions([...options, { word: selectedText, index: startIndex }]);
 
-        // Wrap the selected text with an underline span
         const range = selection.getRangeAt(0);
         const span = document.createElement('span');
         span.style.textDecoration = 'underline';
         span.dataset.word = selectedText;
         range.surroundContents(span);
 
-        // Update the sentence state with the new HTML content
         setSentence(inputRef.current.innerHTML);
       }
     }
@@ -86,7 +81,6 @@ const ClozeForm = ({ formId, questionNumber, onAdd, onDelete, onFormChange }) =>
   const handleSelection = () => {
     const selection = window.getSelection().toString().trim();
     if (selection === ".....") {
-      // Find which blank (dots) is selected
       const selectedIndex = options.findIndex(({ index }) => {
         const dotIndex = sentence.indexOf(".....", index);
         return dotIndex === index;
@@ -97,19 +91,17 @@ const ClozeForm = ({ formId, questionNumber, onAdd, onDelete, onFormChange }) =>
     }
   };
 
-  // Handle focus to position the toolbar and show it
   const handleFocus = () => {
     const rect = inputRef.current.getBoundingClientRect();
     setToolbarPosition({
       x: rect.left + 60,
-      y: rect.top - 45, // Positioned above the input
+      y: rect.top - 45, 
     });
     setShowToolbar(sentence.length > 0);
   };
 
-  // Hide toolbar on blur
   const handleBlur = () => {
-    setTimeout(() => setShowToolbar(false), 200); // Small delay to ensure click on toolbar icons works
+    setTimeout(() => setShowToolbar(false), 200); 
   };
 
   const handleSave = async () => {
@@ -158,52 +150,51 @@ const ClozeForm = ({ formId, questionNumber, onAdd, onDelete, onFormChange }) =>
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-11">
-          <Card className="p-6 shadow-lg rounded-lg bg-white">
-            <QuestionHeader
-              questionNumber={questionNumber}
-              onAdd={onAdd}
-              onDelete={onDelete}
-              onSave={handleSave}
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+      <div className="col-span-1 md:col-span-11">
+        <Card className="p-3 md:p-6 shadow-lg rounded-lg bg-white">
+          <QuestionHeader
+            questionNumber={questionNumber}
+            onAdd={onAdd}
+            onDelete={onDelete}
+            onSave={handleSave}
+          />
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
+            <DescriptionInput
+              description={description}
+              setDescription={setDescription}
             />
-            <div className="flex justify-between items-center mb-4">
-              <DescriptionInput
-                description={description}
-                setDescription={setDescription}
-              />
-              <PointsInput
-                points={points}
-                negativePoints={negativePoints}
-                setPoints={setPoints}
-                setNegativePoints={setNegativePoints}
-              />
-            </div>
-
-            <PreviewCard preview={preview} />
-
-            <SentenceInput
-              sentence={sentence}
-              inputRef={inputRef}
-              handleInputChange={handleInputChange}
-              handleFocus={handleFocus}
-              handleBlur={handleBlur}
-              handleSelection={handleSelection}
+            <PointsInput
+              points={points}
+              negativePoints={negativePoints}
+              setPoints={setPoints}
+              setNegativePoints={setNegativePoints}
             />
-            <OptionsList options={options} setOptions={setOptions} />
+          </div>
 
-            <Toolbar
-              toolbarPosition={toolbarPosition}
-              showToolbar={showToolbar}
-              selectedOptionIndex={selectedOptionIndex}
-              handleUnderline={handleUnderline}
-            // handleRestore={handleRestore}
-            />
-          </Card>
-        </div>
+          <PreviewCard preview={preview} />
+
+          <SentenceInput
+            sentence={sentence}
+            inputRef={inputRef}
+            handleInputChange={handleInputChange}
+            handleFocus={handleFocus}
+            handleBlur={handleBlur}
+            handleSelection={handleSelection}
+          />
+          <OptionsList options={options} setOptions={setOptions} />
+
+          <Toolbar
+            toolbarPosition={toolbarPosition}
+            showToolbar={showToolbar}
+            selectedOptionIndex={selectedOptionIndex}
+            handleUnderline={handleUnderline}
+          />
+        </Card>
       </div>
-    </DndProvider >
-  );
+    </div>
+  </DndProvider>
+);
 };
 
 export default ClozeForm;

@@ -57,7 +57,6 @@ const ClozeSection = ({ data, onDrop }) => {
         <div key={clozeItem._id} className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <QuestionHeader number={clozeItem.displayNumber} />
           <p className="mb-4">{clozeItem.description}</p>
-          {/* Word Options */}
           <div className="flex flex-wrap gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
             {clozeItem.options?.map((word, wordIndex) => (
               <DraggableClozeWord
@@ -69,7 +68,6 @@ const ClozeSection = ({ data, onDrop }) => {
             ))}
           </div>
 
-          {/* Sentence with Blanks */}
           <div className="p-4 bg-white rounded-lg border">
             <p className="leading-relaxed text-lg">
               {renderSentenceWithBlanks(clozeItem.sentence, clozeItem._id.$oid)}
